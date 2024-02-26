@@ -15,6 +15,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 
 import javax.sql.DataSource;
 import java.util.Objects;
@@ -28,6 +32,10 @@ public class SpringConfig implements WebMvcConfigurer {
 
     private final ApplicationContext applicationContext;
     private final Environment environment;
+
+    // Добавьте это в ваш класс SpringConfig
+    private static final Logger logger = LoggerFactory.getLogger(SpringConfig.class);
+
 
     @Autowired
     public SpringConfig(ApplicationContext applicationContext, Environment environment) {
@@ -64,8 +72,12 @@ public class SpringConfig implements WebMvcConfigurer {
 
         dataSource.setDriverClassName(Objects.requireNonNull(environment.getProperty("driver")));
         dataSource.setUrl(environment.getProperty("url"));
-        dataSource.setUsername(environment.getProperty("username"));
+        dataSource.setUsername(environment.getProperty("user"));
         dataSource.setPassword(environment.getProperty("password"));
+        logger.info("Driver: " + environment.getProperty("driver"));
+        logger.info("URL: " + environment.getProperty("url"));
+        logger.info("Username: " + environment.getProperty("user"));
+        logger.info("Password: " + environment.getProperty("password"));
         return dataSource;
     }
 
@@ -75,3 +87,4 @@ public class SpringConfig implements WebMvcConfigurer {
         return new JdbcTemplate(dataSource());
     }
 }
+
