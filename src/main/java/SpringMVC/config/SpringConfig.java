@@ -9,6 +9,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -21,19 +25,20 @@ import org.slf4j.LoggerFactory;
 
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 
 
 @Configuration
 @ComponentScan("SpringMVC.config")
+@PropertySource("classpath:hibernate.properties")
 @EnableWebMvc
-@PropertySource("classpath:database.properties")
+@EnableTransactionManagement
 public class SpringConfig implements WebMvcConfigurer {
 
     private final ApplicationContext applicationContext;
     private final Environment environment;
-
-    // Добавьте это в ваш класс SpringConfig
     private static final Logger logger = LoggerFactory.getLogger(SpringConfig.class);
 
 
@@ -70,21 +75,46 @@ public class SpringConfig implements WebMvcConfigurer {
     {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
-        dataSource.setDriverClassName(Objects.requireNonNull(environment.getProperty("driver")));
-        dataSource.setUrl(environment.getProperty("url"));
-        dataSource.setUsername(environment.getProperty("user"));
-        dataSource.setPassword(environment.getProperty("password"));
-        logger.info("Driver: " + environment.getProperty("driver"));
-        logger.info("URL: " + environment.getProperty("url"));
-        logger.info("Username: " + environment.getProperty("user"));
-        logger.info("Password: " + environment.getProperty("password"));
+        dataSource.setDriverClassName(Objects.requireNonNull(environment.getProperty("hibernate.driver_class")));
+        dataSource.setUrl(environment.getProperty("hibernate.connection.url"));
+        dataSource.setUsername(environment.getProperty("hibernate.connection.username"));
+        dataSource.setPassword(environment.getProperty("hibernate.connection.password"));
         return dataSource;
     }
 
-    @Bean
+  //  @Bean
+   // public JdbcTemplate jdbcTemplate(){
+   //     return new JdbcTemplate(dataSource());
+    //}
 
-    public JdbcTemplate jdbcTemplate(){
-        return new JdbcTemplate(dataSource());
+    private Properties hibernateProperties() {
+        Properties properties = new Properties();
+        properties.put("hibernate.dialect",environment.getRequiredProperty("hibernate.dialect"));
+        properties.put("hibernate.show_sql",environment.getRequiredProperty("hibernate.show_sql"));
+
+        return properties;
     }
+
+    @Bean
+    public LocalSessionFactoryBean sessionFactory(){
+        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+        sessionFactory.setDataSource(dataSource());
+        sessionFactory.setPackagesToScan("SpringMVC.config");
+        sessionFactory.setHibernateProperties(hibernateProperties());
+
+        return sessionFactory;
+    }
+
+
+    @Bean
+    public PlatformTransactionManager hibernateTransactionManager() {
+        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
+        transactionManager.setSessionFactory(sessionFactory().getObject());
+
+        return transactionManager;
+    }
+
+
+
 }
 
