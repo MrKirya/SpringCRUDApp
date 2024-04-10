@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -12,6 +13,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
+
 @Entity
 @Table(name = "Person")
 public class Person {
@@ -26,14 +30,16 @@ public class Person {
     @Min(value = 0, message = "Age should be greater than 0")
     @Column(name = "age")
     private int age;
+    @OneToMany(mappedBy = "owner")
+    private List<Item> Items;
     @NotEmpty(message = "Email should not be empty!")
     @Email(message = "Email should be valid!")
     @Column(name = "email")
     private String email;
     // Country, City, Postal Code ( 6 digits)
-    @Column(name = "address")
-    @Pattern(regexp = "[A-Z]\\w+, [A-Z]\\w+, \\d{6}", message = "Your address should be in this format: Country, City, Postal Code(6 digits)")
-    private String address;
+//        @Column(name = "address")
+//        @Pattern(regexp = "[A-Z]\\w+,[A-Z]\\w+,\\d{6}", message = "Your address should be in this format: Country, City, Postal Code(6 digits)")
+//        private String address;
     public Person()
     {
 
@@ -42,7 +48,7 @@ public class Person {
         this.name = name;
         this.age = age;
         this.email = email;
-        this.address = address;
+//        this.address = address;
     }
 
     public int getAge() {
@@ -75,13 +81,5 @@ public class Person {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 }
